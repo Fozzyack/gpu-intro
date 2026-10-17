@@ -30,3 +30,22 @@ The small integer-valued inputs give exact sums in `f32`. With general floating
 inputs, compare using a tolerance: parallel addition changes rounding order.
 This example is for correctness and learning, not benchmarking: allocating and
 copying memory will dominate such a small computation.
+
+## Learning note: from GPU blocks to HPC clusters
+
+A dot product is a reduction: `sum(a[i] * b[i])`. Each GPU block computes a
+local sum, and Zig combines those sums. Across a cluster, the same pattern
+applies: each process computes a local dot product, then an MPI reduction
+combines the results (`MPI_Reduce` for one recipient, `MPI_Allreduce` for all).
+GPU barriers synchronize only threads within one block, not the whole GPU or
+cluster; each level needs its own coordination.
+
+For `n` elements, the dot product does about `2n` floating-point operations
+while reading `8n` bytes of `f32` input: roughly 0.25 FLOP per byte, excluding
+partial sums and transfers. This low arithmetic intensity makes large dot
+products typically memory-bandwidth-bound. Keeping inputs on the GPU and
+reusing allocations is important before measuring kernel performance.
+
+Next exercise: reduce the partial sums with a second GPU kernel, then compare
+results and timings with the current CPU final reduction. Use a floating-point
+tolerance when trying non-integer inputs.

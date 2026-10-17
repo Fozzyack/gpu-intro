@@ -12,4 +12,10 @@ fn dot(a: []const f32, b: []const f32) f32 {
 
 pub fn main() !void {
     std.debug.print("Hello, World!\n", .{});
+
+    const a = [_]f32{1, 2, 3};
+    const b = [_]f32{4, 5, 6};
+
+    const result = dot(&a, &b);
+    std.debug.print("result: {d}\n", .{result});
 }
